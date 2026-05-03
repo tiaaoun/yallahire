@@ -4,25 +4,58 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 
 import 'login_screen.dart';
-import 'dashboard_screen.dart'; // ⬅️ use the new dashboard instead of home_screen
+import 'dashboard_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  print("🔥 BEFORE Firebase.initializeApp()");
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  print("✅ AFTER Firebase.initializeApp()");
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  static const Color kPrimary = Color(0xFFE78D83);
+
   @override
   Widget build(BuildContext context) {
-    print("🟢 Building MyApp...");
     return MaterialApp(
       title: 'YallaHire',
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        scaffoldBackgroundColor: Colors.white,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: kPrimary,
+          primary: kPrimary,
+          background: Colors.white,
+          surface: Colors.white,
+        ),
+        primaryColor: kPrimary,
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: kPrimary,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: kPrimary, width: 2),
+          ),
+          floatingLabelStyle: const TextStyle(color: kPrimary),
+        ),
+        progressIndicatorTheme: const ProgressIndicatorThemeData(
+          color: kPrimary,
+        ),
+      ),
       home: const AuthGate(),
     );
   }
@@ -33,28 +66,25 @@ class AuthGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print("🟠 Entered AuthGate...");
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        print(
-          "📡 Stream snapshot: connectionState=${snapshot.connectionState}, user=${snapshot.data}",
-        );
-
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          print("⏳ Waiting for auth state...");
+      builder: (context, authSnapshot) {
+        if (authSnapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+            backgroundColor: Colors.white,
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
           );
         }
 
-        if (snapshot.hasData) {
-          print("✅ User found. Navigating to Dashboard.");
-          return const DashboardScreen(); // ⬅️ new dashboard screen
-        } else {
-          print("❌ No user. Navigating to LoginScreen.");
-          return LoginScreen();
+        final user = authSnapshot.data;
+
+        if (user == null) {
+          return const LoginScreen();
         }
+
+        return const DashboardScreen();
       },
     );
   }
