@@ -599,177 +599,186 @@ class _MyPostsScreenState extends State<MyPostsScreen>
       builder: (sheetContext) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                left: 20,
-                right: 20,
-                top: 20,
-                bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 20,
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
-                      child: Container(
-                        width: 42,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: Colors.black12,
-                          borderRadius: BorderRadius.circular(20),
+            return GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => FocusScope.of(sheetContext).unfocus(),
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: 20,
+                  right: 20,
+                  top: 20,
+                  bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 20,
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 42,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: Colors.black12,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 18),
-                    const Center(
-                      child: Text(
-                        'Leave Review',
+                      const SizedBox(height: 18),
+                      const Center(
+                        child: Text(
+                          'Leave Review',
+                          style: TextStyle(
+                            fontSize: 19,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(5, (index) {
+                          final star = index + 1;
+                          return IconButton(
+                            onPressed: () {
+                              setSheetState(() {
+                                rating = star;
+                              });
+                            },
+                            icon: Icon(
+                              Icons.star,
+                              size: 32,
+                              color:
+                                  star <= rating
+                                      ? Colors.amber
+                                      : Colors.grey.shade300,
+                            ),
+                          );
+                        }),
+                      ),
+                      const SizedBox(height: 10),
+                      const Text(
+                        'Tags',
                         style: TextStyle(
-                          fontSize: 19,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 18),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(5, (index) {
-                        final star = index + 1;
-                        return IconButton(
-                          onPressed: () {
-                            setSheetState(() {
-                              rating = star;
-                            });
-                          },
-                          icon: Icon(
-                            Icons.star,
-                            size: 32,
-                            color:
-                                star <= rating
-                                    ? Colors.amber
-                                    : Colors.grey.shade300,
-                          ),
-                        );
-                      }),
-                    ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      'Tags',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children:
-                          tags.map((tag) {
-                            final isSelected = selectedTags.contains(tag);
-                            return FilterChip(
-                              label: Text(tag),
-                              selected: isSelected,
-                              onSelected: (selected) {
-                                setSheetState(() {
-                                  if (selected) {
-                                    if (selectedTags.length < 3) {
-                                      selectedTags.add(tag);
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children:
+                            tags.map((tag) {
+                              final isSelected = selectedTags.contains(tag);
+                              return FilterChip(
+                                label: Text(tag),
+                                selected: isSelected,
+                                onSelected: (selected) {
+                                  setSheetState(() {
+                                    if (selected) {
+                                      if (selectedTags.length < 3) {
+                                        selectedTags.add(tag);
+                                      }
+                                    } else {
+                                      selectedTags.remove(tag);
                                     }
-                                  } else {
-                                    selectedTags.remove(tag);
-                                  }
-                                });
-                              },
-                              selectedColor: const Color(0xFFF7D8D1),
-                              checkmarkColor: const Color(0xFFB86E5D),
-                              labelStyle: TextStyle(
-                                color:
-                                    isSelected
-                                        ? const Color(0xFFB86E5D)
-                                        : Colors.black87,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              backgroundColor: Colors.grey.shade100,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(18),
-                              ),
-                            );
-                          }).toList(),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: commentController,
-                      maxLines: 4,
-                      cursorColor: kPrimary,
-                      decoration: InputDecoration(
-                        hintText: 'Write a short review...',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: const BorderSide(color: Colors.black26),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: const BorderSide(
-                            color: kPrimary,
-                            width: 2,
+                                  });
+                                },
+                                selectedColor: const Color(0xFFF7D8D1),
+                                checkmarkColor: const Color(0xFFB86E5D),
+                                labelStyle: TextStyle(
+                                  color:
+                                      isSelected
+                                          ? const Color(0xFFB86E5D)
+                                          : Colors.black87,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                backgroundColor: Colors.grey.shade100,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(18),
+                                ),
+                              );
+                            }).toList(),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: commentController,
+                        maxLines: 4,
+                        textInputAction: TextInputAction.done,
+                        onEditingComplete:
+                            () => FocusScope.of(sheetContext).unfocus(),
+                        onSubmitted:
+                            (_) => FocusScope.of(sheetContext).unfocus(),
+                        cursorColor: kPrimary,
+                        decoration: InputDecoration(
+                          hintText: 'Write a short review...',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(color: Colors.black26),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(
+                              color: kPrimary,
+                              width: 2,
+                            ),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
                           ),
                         ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
-                        ),
                       ),
-                    ),
-                    const SizedBox(height: 18),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          try {
-                            await _submitReview(
-                              postId: postId,
-                              docId: docId,
-                              collectionName: collectionName,
-                              toUid: toUid,
-                              rating: rating,
-                              comment: commentController.text,
-                              tags: selectedTags.toList(),
-                            );
+                      const SizedBox(height: 18),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            try {
+                              await _submitReview(
+                                postId: postId,
+                                docId: docId,
+                                collectionName: collectionName,
+                                toUid: toUid,
+                                rating: rating,
+                                comment: commentController.text,
+                                tags: selectedTags.toList(),
+                              );
 
-                            if (sheetContext.mounted) {
-                              Navigator.pop(sheetContext);
+                              if (sheetContext.mounted) {
+                                Navigator.pop(sheetContext);
+                              }
+                              if (!mounted) return;
+                              setState(() {});
+                            } catch (e) {
+                              if (!mounted) return;
+                              await _showMessageDialog(
+                                'Error: $e',
+                                title: 'Error',
+                              );
                             }
-                            if (!mounted) return;
-                            setState(() {});
-                          } catch (e) {
-                            if (!mounted) return;
-                            await _showMessageDialog(
-                              'Error: $e',
-                              title: 'Error',
-                            );
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: kPrimary,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(22),
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: kPrimary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(22),
+                            ),
+                            elevation: 0,
                           ),
-                          elevation: 0,
-                        ),
-                        child: const Text(
-                          'Submit Review',
-                          style: TextStyle(fontWeight: FontWeight.w600),
+                          child: const Text(
+                            'Submit Review',
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             );

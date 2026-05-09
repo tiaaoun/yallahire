@@ -19,6 +19,9 @@ const BLOCKED_CATEGORY_REASONS = {
   "illicit/violent": "Violent illegal content is not allowed.",
 };
 
+const BLOCKED_UNSAFE_SERVICE_PATTERN =
+  /\b(prostitute|prostitution|escort|sexual|sex work|nude|explicit)\b/i;
+
 function getFlaggedReason(scores = {}) {
   const entries = Object.entries(scores);
   if (!entries.length) return "This content may violate safety rules.";
@@ -48,6 +51,10 @@ function getFlaggedReason(scores = {}) {
 function mapModerationResult(result = {}) {
   const categories = result.categories || {};
   const scores = result.category_scores || {};
+  const harassmentScore = Number(scores.harassment) || 0;
+  const threateningHarassmentScore =
+    Number(scores["harassment/threatening"]) || 0;
+  const hateScore = Number(scores.hate) || 0;
 
   for (const [category, reason] of Object.entries(BLOCKED_CATEGORY_REASONS)) {
     if (categories[category] === true) {
@@ -65,12 +72,23 @@ function mapModerationResult(result = {}) {
     };
   }
 
+  if (
+    harassmentScore >= 0.18 ||
+    threateningHarassmentScore >= 0.12 ||
+    hateScore >= 0.15
+  ) {
+    return {
+      status: "flagged",
+      reason: getFlaggedReason(scores),
+    };
+  }
+
   const maxScore = Math.max(
       0,
       ...Object.values(scores).map((value) => Number(value) || 0),
   );
 
-  if (maxScore >= 0.35) {
+  if (maxScore >= 0.28) {
     return {
       status: "flagged",
       reason: getFlaggedReason(scores),
@@ -209,6 +227,13 @@ exports.moderatePostText = onRequest({ cors: true, invoker: "public" }, async (r
 
     if (!combinedText) {
       return res.status(400).json({ error: "No content to moderate." });
+    }
+
+    if (BLOCKED_UNSAFE_SERVICE_PATTERN.test(combinedText)) {
+      return res.json({
+        status: "blocked",
+        reason: "Adult or sexual services are not allowed on YallaHire.",
+      });
     }
 
     const moderation = await openai.moderations.create({

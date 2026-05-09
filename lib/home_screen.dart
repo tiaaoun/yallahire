@@ -23,7 +23,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   static const Color kBg = Colors.white;
   static const Color kPrimary = Color(0xFFE89C8A);
-  static const double _bestMatchThreshold = 0.7;
+  static const double _bestMatchThreshold = 0.35;
 
   String selectedType = 'job';
 
@@ -1495,167 +1495,170 @@ class _HomeScreenState extends State<HomeScreen> {
     User? currentUser,
     Map<String, dynamic>? currentUserProfile,
   ) {
-    return ListView.builder(
-      itemCount: posts.length,
-      itemBuilder: (context, index) {
-        final data = posts[index].data() as Map<String, dynamic>;
-        final postId = posts[index].id;
+    final postCards =
+        posts.map((post) {
+          final data = post.data() as Map<String, dynamic>;
+          final postId = post.id;
 
-        final title = (data['title'] ?? 'No Title').toString();
-        final desc = (data['description'] ?? '').toString();
-        final city = (data['city'] ?? 'Unknown').toString();
-        final price = (data['price'] ?? 'N/A').toString();
-        final currency = (data['currency'] ?? '\$').toString();
-        final postedBy = (data['postedBy'] ?? '').toString();
-        final createdAt = data['createdAt'] as Timestamp?;
-        final posterName = (data['posterName'] ?? '').toString();
-        final posterImageUrl = (data['posterImageUrl'] ?? '').toString();
-        final matchScore =
-            currentUserProfile == null
-                ? 0.0
-                : _calculateMatchScore(currentUserProfile, data);
+          final title = (data['title'] ?? 'No Title').toString();
+          final desc = (data['description'] ?? '').toString();
+          final city = (data['city'] ?? 'Unknown').toString();
+          final price = (data['price'] ?? 'N/A').toString();
+          final currency = (data['currency'] ?? '\$').toString();
+          final postedBy = (data['postedBy'] ?? '').toString();
+          final createdAt = data['createdAt'] as Timestamp?;
+          final posterName = (data['posterName'] ?? '').toString();
+          final posterImageUrl = (data['posterImageUrl'] ?? '').toString();
+          final matchScore =
+              currentUserProfile == null
+                  ? 0.0
+                  : _calculateMatchScore(currentUserProfile, data);
 
-        final isHiringPost = selectedType == 'job';
+          final isHiringPost = selectedType == 'job';
 
-        final bool alreadyDone =
-            isHiringPost
-                ? (_appliedStatus[postId] ?? false)
-                : (_requestedStatus[postId] ?? false);
+          final bool alreadyDone =
+              isHiringPost
+                  ? (_appliedStatus[postId] ?? false)
+                  : (_requestedStatus[postId] ?? false);
 
-        final bool isSaved = _savedStatus[postId] ?? false;
+          final bool isSaved = _savedStatus[postId] ?? false;
+          final bool isOwnPost =
+              postedBy == currentUser?.uid ||
+              (data['userId'] ?? '').toString().trim() == currentUser?.uid;
 
-        return _buildPostCard(
-          title: title,
-          description: desc,
-          city: city,
-          price: price,
-          currency: currency,
-          posterName: posterName,
-          posterImageUrl: posterImageUrl,
-          postedBy: postedBy,
-          createdAt: createdAt,
-          isBestMatch: matchScore >= _bestMatchThreshold,
-          topRight: _buildPostHeaderActions(
-            currentUser: currentUser,
-            postId: postId,
-            postData: data,
-            isSaved: isSaved,
-          ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              OutlinedButton(
-                onPressed: () => _openChat(postedBy),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: kPrimary,
-                  side: const BorderSide(color: kPrimary),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(22),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 26,
-                    vertical: 12,
-                  ),
-                ),
-                child: const Text('Chat'),
-              ),
-              const SizedBox(width: 10),
-              if (selectedType == 'job')
-                alreadyDone
-                    ? ElevatedButton(
-                      onPressed: null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: kPrimary,
-                        disabledBackgroundColor: kPrimary,
-                        foregroundColor: Colors.white,
-                        disabledForegroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(22),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 26,
-                          vertical: 12,
-                        ),
-                        elevation: 0,
-                      ),
-                      child: const Text('Applied'),
-                    )
-                    : ElevatedButton(
-                      onPressed: () async {
-                        final ok = await _ensureCompleteProfile(
-                          action: 'apply',
-                        );
-                        if (!ok) return;
-
-                        _showApplySheet(postId, title, postedBy);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: kPrimary,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(22),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 26,
-                          vertical: 12,
-                        ),
-                        elevation: 0,
-                      ),
-                      child: const Text('Apply'),
-                    )
-              else
-                alreadyDone
-                    ? ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const MyPostsScreen(),
-                          ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: kPrimary,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(22),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 26,
-                          vertical: 12,
-                        ),
-                        elevation: 0,
-                      ),
-                      child: const Text('Requested'),
-                    )
-                    : ElevatedButton(
-                      onPressed: () async {
-                        final ok = await _ensureCompleteProfile(
-                          action: 'hire someone',
-                        );
-                        if (!ok) return;
-
-                        _showHireSheet(postId, title, postedBy);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: kPrimary,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(22),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 26,
-                          vertical: 12,
-                        ),
-                        elevation: 0,
-                      ),
-                      child: const Text('Hire'),
+          return _buildPostCard(
+            title: title,
+            description: desc,
+            city: city,
+            price: price,
+            currency: currency,
+            posterName: posterName,
+            posterImageUrl: posterImageUrl,
+            postedBy: postedBy,
+            createdAt: createdAt,
+            isBestMatch: !isOwnPost && matchScore >= _bestMatchThreshold,
+            topRight: _buildPostHeaderActions(
+              currentUser: currentUser,
+              postId: postId,
+              postData: data,
+              isSaved: isSaved,
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                OutlinedButton(
+                  onPressed: () => _openChat(postedBy),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: kPrimary,
+                    side: const BorderSide(color: kPrimary),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(22),
                     ),
-            ],
-          ),
-        );
-      },
-    );
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 26,
+                      vertical: 12,
+                    ),
+                  ),
+                  child: const Text('Chat'),
+                ),
+                const SizedBox(width: 10),
+                if (selectedType == 'job')
+                  alreadyDone
+                      ? ElevatedButton(
+                        onPressed: null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: kPrimary,
+                          disabledBackgroundColor: kPrimary,
+                          foregroundColor: Colors.white,
+                          disabledForegroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(22),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 26,
+                            vertical: 12,
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text('Applied'),
+                      )
+                      : ElevatedButton(
+                        onPressed: () async {
+                          final ok = await _ensureCompleteProfile(
+                            action: 'apply',
+                          );
+                          if (!ok) return;
+
+                          _showApplySheet(postId, title, postedBy);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: kPrimary,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(22),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 26,
+                            vertical: 12,
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text('Apply'),
+                      )
+                else
+                  alreadyDone
+                      ? ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const MyPostsScreen(),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: kPrimary,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(22),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 26,
+                            vertical: 12,
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text('Requested'),
+                      )
+                      : ElevatedButton(
+                        onPressed: () async {
+                          final ok = await _ensureCompleteProfile(
+                            action: 'hire someone',
+                          );
+                          if (!ok) return;
+
+                          _showHireSheet(postId, title, postedBy);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: kPrimary,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(22),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 26,
+                            vertical: 12,
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text('Hire'),
+                      ),
+              ],
+            ),
+          );
+        }).toList();
+
+    return ListView(children: postCards);
   }
 
   @override
