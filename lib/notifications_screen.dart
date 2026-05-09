@@ -53,6 +53,7 @@ class NotificationsScreen extends StatelessWidget {
   ) async {
     final data = notificationDoc.data() as Map<String, dynamic>;
 
+    // mark the notification as read before routing the user to the related screen.
     await notificationDoc.reference.update({'isRead': true});
     if (!context.mounted) return;
 
@@ -110,6 +111,7 @@ class NotificationsScreen extends StatelessWidget {
                 ),
               )
               : StreamBuilder<QuerySnapshot>(
+                // stream the user's notifications in reverse chronological order.
                 stream:
                     FirebaseFirestore.instance
                         .collection('notifications')

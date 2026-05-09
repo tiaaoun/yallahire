@@ -7,6 +7,7 @@ import 'login_screen.dart';
 import 'dashboard_screen.dart';
 
 void main() async {
+  // initialize Firebase before building any screen that depends on auth or Firestore.
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -67,6 +68,7 @@ class AuthGate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
+      // listen to authentication state so the app can route users automatically.
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, authSnapshot) {
         if (authSnapshot.connectionState == ConnectionState.waiting) {

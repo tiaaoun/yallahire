@@ -46,9 +46,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final doc = await _firestore.collection('profiles').doc(u.uid).get();
 
       if (doc.exists) {
+        // load any previously saved profile fields for edit or onboarding continuation.
         data = doc.data() ?? {};
       }
 
+      // keep country and verified phone details aligned with the authenticated account.
       data['country'] = 'Lebanon';
       data['phoneNumber'] = u.phoneNumber ?? data['phoneNumber'] ?? '';
       data['phoneVerified'] = true;
@@ -63,6 +65,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final u = user;
     if (u == null) return;
 
+    // merge the latest profile fields without removing older stored values.
     await _firestore.collection('profiles').doc(u.uid).set({
       ...data,
       'country': 'Lebanon',
@@ -111,6 +114,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final file = File(picked.path);
       final ref = _storage.ref('profile_pics/${u.uid}.jpg');
+      // store one profile photo per user and save its download URL in the profile document.
       await ref.putFile(file);
       final url = await ref.getDownloadURL();
 
@@ -165,6 +169,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (isYear) {
       String? selected = current;
 
+      // only allow ages 18+ when choosing the birth year during profile setup.
       final validYears =
           List.generate(currentYear - 1900 + 1, (i) => currentYear - i)
               .where((y) => y <= currentYear - 18)

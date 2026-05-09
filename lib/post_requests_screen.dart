@@ -164,6 +164,7 @@ class PostRequestsScreen extends StatelessWidget {
           peerId.isNotEmpty &&
           currentUserId.isNotEmpty) {
         if (isJobPost) {
+          // job posts can have only one active accepted applicant at a time.
           await requestRef.update({
             'status': 'accepted',
             'interactionStatus': 'in_progress',
@@ -197,6 +198,7 @@ class PostRequestsScreen extends StatelessWidget {
 
           for (final requestDoc in pendingSnapshot.docs) {
             if (requestDoc.id != docId) {
+              // reject the remaining pending requests once one user is accepted.
               await requestDoc.reference.update({'status': 'rejected'});
             }
           }
@@ -227,6 +229,7 @@ class PostRequestsScreen extends StatelessWidget {
             return;
           }
 
+          // service posts also move the accepted request into the in-progress stage.
           await requestRef.update({
             'status': 'accepted',
             'interactionStatus': 'in_progress',
@@ -255,6 +258,7 @@ class PostRequestsScreen extends StatelessWidget {
         }
 
         final ids = [currentUserId, peerId]..sort();
+        // reuse the same deterministic chat ID pattern after an application is accepted.
         final chatId = '${ids[0]}_${ids[1]}';
         final chatRef = FirebaseFirestore.instance
             .collection('chats')
@@ -319,6 +323,7 @@ class PostRequestsScreen extends StatelessWidget {
         );
 
         try {
+          // add a single system message so the accepted interaction has a clear chat starting point.
           final existingSystemMessages =
               await chatRef
                   .collection('messages')

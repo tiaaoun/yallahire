@@ -64,6 +64,7 @@ Future<void> showReportPostSheet(
           .collection('reports')
           .doc(reportId);
 
+      // combine post ID and reporter ID so the same user cannot submit duplicate reports for one post.
       final reporterProfile =
           await FirebaseFirestore.instance
               .collection('profiles')
@@ -85,6 +86,7 @@ Future<void> showReportPostSheet(
         'createdAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: false));
 
+      // notify all admins so the report appears in the moderation workflow.
       await AppNotificationService.notifyAdmins(
         title: 'New report submitted',
         message: 'A new report was submitted.',
