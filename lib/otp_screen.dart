@@ -46,6 +46,7 @@ class _OtpScreenState extends State<OtpScreen> {
     setState(() => isLoading = true);
 
     try {
+      // convert the SMS code into a Firebase credential and complete sign-in.
       final credential = PhoneAuthProvider.credential(
         verificationId: widget.verificationId,
         smsCode: code,
@@ -70,12 +71,14 @@ class _OtpScreenState extends State<OtpScreen> {
       if (!mounted) return;
 
       if (profileDoc.exists) {
+        // returning users with an existing profile go directly to the main dashboard.
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (_) => const DashboardScreen()),
           (route) => false,
         );
       } else {
+        // first-time users get a starter profile document before onboarding continues.
         await profileRef.set({
           'phoneNumber': user.phoneNumber ?? widget.phoneNumber,
           'phoneVerified': true,

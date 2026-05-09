@@ -302,6 +302,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final u = FirebaseAuth.instance.currentUser;
     if (u == null) return false;
 
+    // applying, hiring, and similar actions require a sufficiently completed user profile.
     final doc =
         await FirebaseFirestore.instance
             .collection('profiles')
@@ -520,6 +521,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }) async {
     final key = '${selectedType}_${userId}_${posts.map((e) => e.id).join(",")}';
 
+    // cache visible interaction states to avoid repeating Firestore reads during rebuilds.
     if (_preparedPostsKey == key) return;
 
     for (final post in posts) {
@@ -557,9 +559,11 @@ class _HomeScreenState extends State<HomeScreen> {
       final existing = await savedRef.get();
 
       if (existing.exists) {
+        // remove the saved reference when the user unbookmarks the post.
         await savedRef.delete();
         _savedStatus[postId] = false;
       } else {
+        // store a lightweight snapshot so saved posts can be listed quickly later.
         await savedRef.set({
           'postId': postId,
           'savedAt': Timestamp.now(),
@@ -636,6 +640,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     double score = 0;
 
+    // rank posts by simple profile-to-post relevance before falling back to recency.
     if (userCity.isNotEmpty && userCity == postCity) {
       score += 0.4;
     }
@@ -681,6 +686,7 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final profile = await _getCurrentUserProfile(user);
 
+      // save one application per user under the post using the applicant UID as the document ID.
       final application = {
         'applicantUid': user.uid,
         'postOwnerUid': postOwnerUid,
@@ -699,6 +705,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       await docRef.set(application);
 
+      // notify the post owner that a new applicant has submitted details.
       await AppNotificationService.createNotification(
         userId: postOwnerUid,
         type: 'application_received',
@@ -944,6 +951,7 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final profile = await _getCurrentUserProfile(user);
 
+      // service requests mirror applications, but target posts where someone is offering work.
       final requestData = {
         'hirerUid': user.uid,
         'postOwnerUid': postOwnerUid,
@@ -1203,6 +1211,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       final ids = [currentUser.uid, peerId]..sort();
+      // sort the participant IDs so both users always resolve the same chat document ID.
       final chatId = '${ids[0]}_${ids[1]}';
 
       final currentProfileDoc =
@@ -1234,6 +1243,7 @@ class _HomeScreenState extends State<HomeScreen> {
           .collection('chats')
           .doc(chatId);
 
+      // merge profile metadata into the chat document so chat lists can render names and images.
       await chatRef.set({
         'participants': ids,
         'participantNames': {

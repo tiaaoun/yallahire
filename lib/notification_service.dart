@@ -15,6 +15,7 @@ class AppNotificationService {
   }) async {
     if (userId.trim().isEmpty) return;
 
+    // keep notification creation centralized so all app flows store a consistent payload.
     await _firestore.collection('notifications').add({
       'userId': userId,
       'type': type,
@@ -34,6 +35,7 @@ class AppNotificationService {
     required String message,
     String? relatedPostId,
   }) async {
+    // send the same moderation alert to every profile marked as an admin.
     final admins =
         await _firestore
             .collection('profiles')

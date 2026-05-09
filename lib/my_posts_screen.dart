@@ -445,6 +445,7 @@ class _MyPostsScreenState extends State<MyPostsScreen>
     final requestDoc = await requestRef.get();
     final requestData = requestDoc.data() ?? {};
 
+    // completion confirmation marks the interaction ready for the review stage.
     await requestRef.update({
       'interactionStatus': 'completed',
       'completionRequested': true,
@@ -461,6 +462,7 @@ class _MyPostsScreenState extends State<MyPostsScreen>
             : (requestData['hirerUid'] ?? '').toString();
 
     if (postOwnerUid.isNotEmpty) {
+      // both sides receive a reminder so each user can leave a review after completion.
       await AppNotificationService.createNotification(
         userId: postOwnerUid,
         type: 'review_reminder',
@@ -536,6 +538,7 @@ class _MyPostsScreenState extends State<MyPostsScreen>
             .collection('reviews')
             .doc();
 
+    // reviews are stored under the reviewed user's profile for public profile display.
     await reviewRef.set({
       'fromUid': currentUserId,
       'fromName': fromName,
@@ -551,6 +554,7 @@ class _MyPostsScreenState extends State<MyPostsScreen>
     });
 
     await requestRef.update({
+      // store which side has already reviewed to prevent duplicate submissions.
       isPoster ? 'reviewedByPoster' : 'reviewedByOtherUser': true,
     });
   }
@@ -1184,6 +1188,7 @@ class _MyPostsScreenState extends State<MyPostsScreen>
     final postSnapshot =
         await FirebaseFirestore.instance.collection('posts').get();
 
+    // collect this user's requests by scanning posts and checking the matching subcollections.
     for (final postDoc in postSnapshot.docs) {
       final postData = postDoc.data();
       final postId = postDoc.id;

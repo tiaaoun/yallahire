@@ -26,6 +26,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     final ids = [currentUser.uid, widget.peerId]..sort();
+    // use the sorted user IDs to keep a single shared chat thread between both users.
     chatId = '${ids[0]}_${ids[1]}';
     _markMessagesAsSeen();
   }
@@ -52,6 +53,7 @@ class _ChatScreenState extends State<ChatScreen> {
           .collection('chats')
           .doc(chatId);
 
+      // mark all unread incoming messages as seen when this conversation is opened.
       final unreadMessages =
           await chatRef
               .collection('messages')
@@ -69,6 +71,7 @@ class _ChatScreenState extends State<ChatScreen> {
         chatData['unreadCount'] ?? {},
       );
 
+      // reset this user's unread counter after the seen flags are updated.
       unreadMap[currentUser.uid] = 0;
 
       await chatRef.set({
@@ -106,6 +109,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
       final peerUnread = _safeInt(unreadMap[widget.peerId]);
 
+      // update the chat summary first so chat list previews stay current.
       unreadMap[currentUser.uid] = 0;
       unreadMap[widget.peerId] = peerUnread + 1;
 
@@ -125,6 +129,7 @@ class _ChatScreenState extends State<ChatScreen> {
         'type': 'text',
       });
 
+      // a separate notification lets the receiver notice the message outside the chat screen.
       await AppNotificationService.createNotification(
         userId: widget.peerId,
         type: 'new_message',

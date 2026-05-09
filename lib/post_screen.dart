@@ -111,6 +111,7 @@ class _PostScreenState extends State<PostScreen> {
     final u = FirebaseAuth.instance.currentUser;
     if (u == null) return false;
 
+    // posting is allowed only after the user has the required public profile fields.
     final doc =
         await FirebaseFirestore.instance
             .collection('profiles')
@@ -302,6 +303,7 @@ class _PostScreenState extends State<PostScreen> {
 
     try {
       final url = _improvePostUrl;
+      // send the current draft to the AI helper so it can rewrite the description.
       final response = await http.post(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
@@ -380,6 +382,7 @@ class _PostScreenState extends State<PostScreen> {
     required String title,
     required String description,
   }) async {
+    // moderate post text before it reaches Firestore so unsafe content can be stopped early.
     final response = await http.post(
       Uri.parse(_moderationUrl),
       headers: {'Content-Type': 'application/json'},
@@ -420,6 +423,7 @@ class _PostScreenState extends State<PostScreen> {
       final title = titleController.text.trim();
       final description = descController.text.trim();
 
+      // run the draft through the moderation service before saving or updating the post.
       final moderation = await _moderatePostText(
         title: title,
         description: description,
@@ -478,6 +482,7 @@ class _PostScreenState extends State<PostScreen> {
       };
 
       if (_isEditing) {
+        // update the existing post document when this screen is used in edit mode.
         await FirebaseFirestore.instance
             .collection('posts')
             .doc(widget.editingPostId)
@@ -500,6 +505,7 @@ class _PostScreenState extends State<PostScreen> {
         return;
       }
 
+      // create a new post document for first-time submissions.
       await FirebaseFirestore.instance.collection('posts').add(postData);
 
       if (!mounted) return;

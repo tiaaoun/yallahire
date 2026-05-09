@@ -17,6 +17,7 @@ class _ReportsReviewScreenState extends State<ReportsReviewScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return false;
 
+    // gate the screen using the admin flag stored on the user's profile document.
     final profile =
         await FirebaseFirestore.instance
             .collection('profiles')
@@ -33,6 +34,7 @@ class _ReportsReviewScreenState extends State<ReportsReviewScreen> {
   }
 
   Future<void> _markReviewed(String reportId) async {
+    // allow admins to close a report without deleting the related post.
     await FirebaseFirestore.instance.collection('reports').doc(reportId).update(
       {'status': 'reviewed', 'reviewedAt': FieldValue.serverTimestamp()},
     );
@@ -90,6 +92,7 @@ class _ReportsReviewScreenState extends State<ReportsReviewScreen> {
     if (!mounted || !shouldDelete) return;
 
     try {
+      // moderation removes the post, then records the final review outcome on the report.
       await FirebaseFirestore.instance.collection('posts').doc(postId).delete();
       await FirebaseFirestore.instance
           .collection('reports')

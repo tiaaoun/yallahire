@@ -33,6 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
   String _normalizePhone() {
     String number = phoneController.text.trim().replaceAll(' ', '');
 
+    // remove the local leading zero before sending the number in international format.
     if (number.startsWith('0')) {
       number = number.substring(1);
     }
@@ -55,11 +56,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       if (kDebugMode) {
+        // test mode disables real app verification during local development.
         await FirebaseAuth.instance.setSettings(
           appVerificationDisabledForTesting: true,
         );
       }
 
+      // start Firebase phone authentication and handle each verification callback.
       await FirebaseAuth.instance.verifyPhoneNumber(
         phoneNumber: phoneNumber,
         verificationCompleted: (PhoneAuthCredential credential) async {
