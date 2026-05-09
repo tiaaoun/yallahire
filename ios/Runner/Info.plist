@@ -31,7 +31,7 @@
 			<string>firebase-phone-auth</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>app-1-174110938760-ios-8032a25020e01c11de713d</string>
+				<string>app-1-174110938760-ios-fe30bd4fd6d5a375de713d</string>
 			</array>
 		</dict>
 	</array>
@@ -41,6 +41,10 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

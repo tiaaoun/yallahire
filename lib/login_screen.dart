@@ -58,7 +58,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (kDebugMode) {
         // test mode disables real app verification during local development.
         await FirebaseAuth.instance.setSettings(
-          appVerificationDisabledForTesting: true,
+        appVerificationDisabledForTesting: true,
         );
       }
 

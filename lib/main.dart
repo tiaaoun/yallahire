@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'firebase_options.dart';
 
 import 'login_screen.dart';
 import 'dashboard_screen.dart';
@@ -9,9 +8,7 @@ import 'dashboard_screen.dart';
 void main() async {
   // initialize Firebase before building any screen that depends on auth or Firestore.
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp();
   runApp(const MyApp());
 }
 

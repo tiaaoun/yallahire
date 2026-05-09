@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'app_feedback.dart';
 import 'dashboard_screen.dart';
+import 'login_screen.dart';
 import 'reports_review_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -28,6 +29,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Map<String, dynamic> data = {};
   bool loading = true;
   final int currentYear = DateTime.now().year;
+
+  Widget _buildRatingSummary(double averageRating) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(5, (index) {
+        return Icon(
+          Icons.star,
+          size: 15,
+          color: index < averageRating.round() ? Colors.amber : Colors.grey.shade300,
+        );
+      }),
+    );
+  }
 
   @override
   void initState() {
@@ -435,7 +449,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return InkWell(
       onTap: readOnly ? null : onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 13),
         child: Row(
           children: [
             Expanded(
@@ -445,7 +459,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Text(
                     label,
                     style: const TextStyle(
-                      fontSize: 13,
+                      fontSize: 12.5,
                       color: Colors.black54,
                       fontWeight: FontWeight.w500,
                     ),
@@ -454,7 +468,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Text(
                     hasValue ? value : 'Add $label',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 15.5,
                       color: hasValue ? Colors.black87 : Colors.black38,
                       fontWeight: hasValue ? FontWeight.w600 : FontWeight.w400,
                     ),
@@ -505,8 +519,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final bio = (data['bio'] ?? '').toString().trim();
 
     if (widget.isOnboarding) {
-      return Scaffold(
-        backgroundColor: Colors.white,
+        return Scaffold(
+          backgroundColor: Colors.white,
         appBar: AppBar(
           title: const Text(
             'Set up profile',
@@ -537,13 +551,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         body: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 18),
             child: Column(
               children: [
                 GestureDetector(
                   onTap: _showImageOptions,
                   child: CircleAvatar(
-                    radius: 42,
+                    radius: 38,
                     backgroundColor: Colors.grey.shade200,
                     backgroundImage:
                         (imageUrl != null && imageUrl.isNotEmpty)
@@ -553,13 +567,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         (imageUrl == null || imageUrl.isEmpty)
                             ? Icon(
                               Icons.person,
-                              size: 42,
+                              size: 40,
                               color: Colors.grey.shade500,
                             )
                             : null,
                   ),
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: 16),
                 _simpleRow(
                   label: 'Phone Number',
                   value: phoneNumber,
@@ -677,129 +691,345 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-          child: Column(
-            children: [
-              GestureDetector(
-                onTap: _showImageOptions,
-                child: CircleAvatar(
-                  radius: 42,
-                  backgroundColor: Colors.grey.shade200,
-                  backgroundImage:
-                      (imageUrl != null && imageUrl.isNotEmpty)
-                          ? NetworkImage(imageUrl)
-                          : null,
-                  child:
-                      (imageUrl == null || imageUrl.isEmpty)
-                          ? Icon(
-                            Icons.person,
-                            size: 42,
-                            color: Colors.grey.shade500,
-                          )
-                          : null,
-                ),
-              ),
-              const SizedBox(height: 18),
-              _simpleRow(
-                label: 'Phone Number',
-                value: phoneNumber,
-                onTap: null,
-                readOnly: true,
-                trailing: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.green.shade50,
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: Text(
-                    'Verified',
-                    style: TextStyle(
-                      color: Colors.green.shade700,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 11,
+        child: StreamBuilder<QuerySnapshot>(
+          stream: _firestore
+              .collection('profiles')
+              .doc(u.uid)
+              .collection('reviews')
+              .orderBy('createdAt', descending: true)
+              .snapshots(),
+          builder: (context, reviewSnapshot) {
+            final reviewDocs =
+                (reviewSnapshot.data?.docs ?? []).where((doc) {
+                  final review = doc.data() as Map<String, dynamic>? ?? {};
+                  final targetUid = (review['toUid'] ?? '').toString().trim();
+                  return targetUid.isEmpty || targetUid == u.uid;
+                }).toList();
+            double averageRating = 0;
+
+            if (reviewDocs.isNotEmpty) {
+              final total = reviewDocs.fold<int>(0, (totalSoFar, doc) {
+                final review = doc.data() as Map<String, dynamic>? ?? {};
+                final rating =
+                    review['rating'] is int
+                        ? review['rating'] as int
+                        : int.tryParse('${review['rating']}') ?? 0;
+                return totalSoFar + rating;
+              });
+              averageRating = total / reviewDocs.length;
+            }
+
+            return SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: GestureDetector(
+                      onTap: _showImageOptions,
+                      child: CircleAvatar(
+                        radius: 38,
+                        backgroundColor: Colors.grey.shade200,
+                        backgroundImage:
+                            (imageUrl != null && imageUrl.isNotEmpty)
+                                ? NetworkImage(imageUrl)
+                                : null,
+                        child:
+                            (imageUrl == null || imageUrl.isEmpty)
+                                ? Icon(
+                                  Icons.person,
+                                  size: 40,
+                                  color: Colors.grey.shade500,
+                                )
+                                : null,
+                      ),
                     ),
                   ),
-                ),
-              ),
-              _divider(),
-              _simpleRow(
-                label: 'Full Name',
-                value: fullName,
-                onTap:
-                    () => _editField(
-                      'fullName',
-                      'Full Name',
-                      data['fullName']?.toString(),
-                      false,
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      _buildRatingSummary(averageRating),
+                      const SizedBox(width: 8),
+                      Text(
+                        reviewDocs.isEmpty
+                            ? 'No ratings yet'
+                            : '${averageRating.toStringAsFixed(1)} (${reviewDocs.length})',
+                        style: const TextStyle(
+                          color: Colors.black87,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13.5,
+                        ),
+                      ),
+                      const Spacer(),
+                      InkWell(
+                        onTap:
+                            reviewDocs.isEmpty
+                                ? null
+                                : () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (_) => _ProfileReviewsScreen(
+                                            userId: u.uid,
+                                            title: 'Reviews About You',
+                                          ),
+                                    ),
+                                  );
+                                },
+                        child: Text(
+                          'See reviews',
+                          style: TextStyle(
+                            color:
+                                reviewDocs.isEmpty
+                                    ? Colors.black26
+                                    : Colors.black45,
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  _simpleRow(
+                    label: 'Phone Number',
+                    value: phoneNumber,
+                    onTap: null,
+                    readOnly: true,
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.green.shade50,
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      child: Text(
+                        'Verified',
+                        style: TextStyle(
+                          color: Colors.green.shade700,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 11,
+                        ),
+                      ),
                     ),
+                  ),
+                  _divider(),
+                  _simpleRow(
+                    label: 'Full Name',
+                    value: fullName,
+                    onTap:
+                        () => _editField(
+                          'fullName',
+                          'Full Name',
+                          data['fullName']?.toString(),
+                          false,
+                        ),
+                  ),
+                  _divider(),
+                  _simpleRow(
+                    label: 'City',
+                    value: city,
+                    onTap:
+                        () => _editField(
+                          'city',
+                          'City',
+                          data['city']?.toString(),
+                          false,
+                        ),
+                  ),
+                  _divider(),
+                  _simpleRow(
+                    label: 'Occupation',
+                    value: occupation,
+                    onTap:
+                        () => _editField(
+                          'occupation',
+                          'Occupation',
+                          data['occupation']?.toString(),
+                          false,
+                        ),
+                  ),
+                  _divider(),
+                  _simpleRow(
+                    label: 'Birth Year',
+                    value: birthYear,
+                    onTap:
+                        () => _editField(
+                          'birthYear',
+                          'Birth Year',
+                          data['birthYear']?.toString(),
+                          true,
+                        ),
+                  ),
+                  _divider(),
+                  _simpleRow(
+                    label: 'Gender',
+                    value: gender,
+                    onTap:
+                        () => _editField(
+                          'gender',
+                          'Gender',
+                          data['gender']?.toString(),
+                          false,
+                        ),
+                  ),
+                  _divider(),
+                  _simpleRow(
+                    label: 'Bio',
+                    value: bio,
+                    onTap:
+                        () => _editField(
+                          'bio',
+                          'Bio',
+                          data['bio']?.toString(),
+                          false,
+                        ),
+                  ),
+                ],
               ),
-              _divider(),
-              _simpleRow(
-                label: 'City',
-                value: city,
-                onTap:
-                    () => _editField(
-                      'city',
-                      'City',
-                      data['city']?.toString(),
-                      false,
-                    ),
-              ),
-              _divider(),
-              _simpleRow(
-                label: 'Occupation',
-                value: occupation,
-                onTap:
-                    () => _editField(
-                      'occupation',
-                      'Occupation',
-                      data['occupation']?.toString(),
-                      false,
-                    ),
-              ),
-              _divider(),
-              _simpleRow(
-                label: 'Birth Year',
-                value: birthYear,
-                onTap:
-                    () => _editField(
-                      'birthYear',
-                      'Birth Year',
-                      data['birthYear']?.toString(),
-                      true,
-                    ),
-              ),
-              _divider(),
-              _simpleRow(
-                label: 'Gender',
-                value: gender,
-                onTap:
-                    () => _editField(
-                      'gender',
-                      'Gender',
-                      data['gender']?.toString(),
-                      false,
-                    ),
-              ),
-              _divider(),
-              _simpleRow(
-                label: 'Bio',
-                value: bio,
-                onTap:
-                    () => _editField(
-                      'bio',
-                      'Bio',
-                      data['bio']?.toString(),
-                      false,
-                    ),
-              ),
-            ],
-          ),
+            );
+          },
         ),
+      ),
+    );
+  }
+}
+
+class _ProfileReviewsScreen extends StatelessWidget {
+  final String userId;
+  final String title;
+
+  const _ProfileReviewsScreen({required this.userId, required this.title});
+
+  String _timeAgo(Timestamp? createdAt) {
+    if (createdAt == null) return '';
+    final now = DateTime.now();
+    final date = createdAt.toDate();
+    final diff = now.difference(date);
+
+    if (diff.inSeconds < 60) return 'Just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    if (diff.inDays < 7) return '${diff.inDays}d ago';
+    return '${date.day}/${date.month}/${date.year}';
+  }
+
+  Widget _buildStars(int rating) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(5, (index) {
+        return Icon(
+          Icons.star,
+          size: 16,
+          color: index < rating ? Colors.amber : Colors.grey.shade300,
+        );
+      }),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text(title, style: const TextStyle(color: Colors.black)),
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        iconTheme: const IconThemeData(color: Colors.black),
+      ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('profiles')
+            .doc(userId)
+            .collection('reviews')
+            .orderBy('createdAt', descending: true)
+            .snapshots(),
+        builder: (context, snapshot) {
+          final reviewDocs =
+              (snapshot.data?.docs ?? []).where((doc) {
+                final review = doc.data() as Map<String, dynamic>? ?? {};
+                final targetUid = (review['toUid'] ?? '').toString().trim();
+                return targetUid.isEmpty || targetUid == userId;
+              }).toList();
+
+          if (snapshot.connectionState == ConnectionState.waiting &&
+              reviewDocs.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (reviewDocs.isEmpty) {
+            return const Center(
+              child: Text(
+                'No reviews yet.',
+                style: TextStyle(color: Colors.black54),
+              ),
+            );
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(20),
+            itemCount: reviewDocs.length,
+            itemBuilder: (context, index) {
+              final review =
+                  reviewDocs[index].data() as Map<String, dynamic>? ?? {};
+              final fromName = (review['fromName'] ?? 'User').toString();
+              final comment = (review['comment'] ?? '').toString();
+              final rating =
+                  review['rating'] is int
+                      ? review['rating'] as int
+                      : int.tryParse('${review['rating']}') ?? 0;
+              final createdAt = review['createdAt'] as Timestamp?;
+
+              return Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.black12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            fromName,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          _timeAgo(createdAt),
+                          style: const TextStyle(
+                            color: Colors.black45,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    _buildStars(rating),
+                    if (comment.trim().isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      Text(
+                        comment,
+                        style: const TextStyle(color: Colors.black87),
+                      ),
+                    ],
+                  ],
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }
@@ -1010,6 +1240,12 @@ class _SettingsScreen extends StatelessWidget {
     if (!context.mounted) return;
     if (confirm == true) {
       await FirebaseAuth.instance.signOut();
+      if (!context.mounted) return;
+
+      Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
+      );
     }
   }
 
