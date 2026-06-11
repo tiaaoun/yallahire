@@ -1,86 +1,93 @@
-# YallaHire – On-Demand Task Matching Application
+# YallaHire
 
-YallaHire is a mobile application designed to connect individuals in Lebanon with others who can assist with everyday tasks and local services. The system provides a structured platform where users can request help, offer services, and communicate directly in a reliable and organized manner.
+YallaHire is a community-based mobile application designed to connect individuals in Lebanon with others who can assist with everyday tasks and local services. The platform focuses on flexible, task-based interactions and aims to provide a structured and reliable alternative to informal social media groups and traditional job platforms.
+
+The system was developed as a full-stack mobile and cloud-based application using Flutter and Firebase, with additional AI-assisted and moderation features to improve usability, trust, and platform safety.
 
 ## Overview
 
-The application addresses the limitations of existing platforms in the Lebanese context by enabling task-based interactions without relying on international payment systems. It focuses on short-term, flexible work and community-level service exchange.
+YallaHire was created in response to the limitations of existing freelancing and gig-economy platforms within the Lebanese context. Many international platforms rely on payment systems that are not fully accessible in Lebanon, while most local interactions for short-term work remain unstructured and dependent on personal networks.
 
-## Features
+The platform enables users to post tasks or services, communicate directly through real-time chat, apply to opportunities, manage profiles, leave reviews, and receive notifications through a centralized mobile application.
 
-- Phone number authentication using one-time password (OTP)
-- Task posting and service creation
-- Browse and apply system
-- Real-time messaging between users
-- User profiles with personal information
-- Reviews and ratings system
-- Notifications for user activity
-- Saved posts functionality
-- Administrative dashboard for monitoring and moderation
-- AI-assisted description improvement
-- Basic content safety filtering
+In addition to the mobile application, the system also includes a dedicated administrative web dashboard for moderation, reporting management, user monitoring, and platform oversight.
 
-## Technologies
+## Core Features
 
-- Flutter (mobile application development)
-- Firebase Authentication
-- Cloud Firestore
-- Firebase Cloud Messaging
+* Phone number authentication using OTP verification
+* User profile management
+* Task and service posting system
+* Browse and apply functionality
+* Real-time chat and messaging
+* Notifications system
+* Reviews and ratings
+* Saved posts functionality
+* Smart task recommendation system
+* AI-assisted description improvement
+* AI-based safety and content filtering
+* Reporting and moderation system
+* Administrative web dashboard
+* Real-time Firebase backend integration
 
-## Application Structure
+## System Architecture
 
-The application is organized into the following main sections:
+The platform follows a client-cloud architecture:
 
-- Home: Displays available tasks and services
-- Post: Allows users to create tasks or service offers
-- Chat: Enables communication between users
-- Activity: Tracks user interactions and requests
-- Profile: Manages user information and settings
+* Flutter mobile application for end users
+* Firebase Authentication for secure OTP-based login
+* Cloud Firestore for real-time database management
+* Firebase Cloud Messaging for notifications
+* Separate admin web dashboard for moderation and platform management
 
-## Where to Find the Code
+The application supports real-time synchronization of posts, chats, notifications, and user interactions using Firebase cloud services.
 
-The main application logic is located in the `lib/` directory. This is the primary folder to review.
+## Technology Stack
 
-Key files:
+Frontend:
 
-- `lib/main.dart` – application entry point and Firebase initialization
-- `lib/login_screen.dart` – phone number login interface
-- `lib/otp_screen.dart` – OTP verification flow
-- `lib/dashboard_screen.dart` – main navigation structure
-- `lib/home_screen.dart` – browsing tasks and services
-- `lib/post_screen.dart` – task creation interface
-- `lib/chat_list_screen.dart` – list of conversations
-- `lib/chat_screen.dart` – real-time messaging system
-- `lib/my_posts_screen.dart` – user posts management
-- `lib/profile_screen.dart` – profile management
-- `lib/notifications_screen.dart` – notifications display
-- `lib/saved_posts_screen.dart` – saved tasks feature
-- `lib/report_post_sheet.dart` – reporting functionality
-- `lib/reports_review_screen.dart` – moderation/admin interface
-- `lib/notification_service.dart` – notification handling logic
-- `lib/widgets/` – reusable UI components
+* Flutter
+* Dart
 
-Firebase configuration and backend:
+Backend & Cloud Services:
 
-- `firestore.rules` – database security rules
-- `firebase.json` – Firebase project configuration
-- `android/app/google-services.json` – Android Firebase setup
-- `ios/Runner/GoogleService-Info.plist` – iOS Firebase setup
+* Firebase Authentication
+* Cloud Firestore
+* Firebase Cloud Messaging
 
-Platform-specific folders:
+Additional Technologies:
 
-- `android/` – Android configuration (generated by Flutter)
-- `ios/` – iOS configuration (generated by Flutter)
+* AI-assisted content generation
+* AI-based moderation and safety filtering
 
-The core logic of the system is implemented in Dart within the `lib/` folder. The platform folders are used only to run the application on different devices.
+## Main Application Sections
+
+* Home Feed
+* Task & Service Posting
+* Chat & Messaging
+* Activity Tracking
+* Saved Posts
+* Notifications
+* User Profiles
+* Reviews & Ratings
+* Admin Dashboard
 
 ## Security
 
-The system includes authentication, role-based access control for administrative features, and database security rules to restrict access to user-specific data.
+The platform includes:
 
-## Status
+* OTP-based authentication
+* Firestore security rules
+* Role-based admin access control
+* User-specific data protection
+* AI-assisted safety moderation
+* Reporting and moderation tools
 
-The system is implemented as a functional prototype demonstrating core features and system behavior.
+## Academic Context
+
+This project was developed as part of the CSC599 Capstone Project at the Lebanese American University (LAU).
+
+Project Title:
+“YallaHire: A Community-Based Platform for Local Tasks and Services in Lebanon”
 
 ## Author
 
