@@ -35,9 +35,16 @@ service cloud.firestore {
     match /profiles/{userId} {
       allow read: if isSignedIn();
 
-      allow create, update, delete: if isSignedIn()
+      allow create: if isSignedIn()
         && request.auth.uid == userId
         && request.resource.data.get('isAdmin', false) == false;
+
+      allow update: if isSignedIn()
+        && request.auth.uid == userId
+        && request.resource.data.get('isAdmin', false) == resource.data.get('isAdmin', false);
+
+      allow delete: if isSignedIn()
+        && request.auth.uid == userId;
     }
 
     match /profiles/{userId}/saved/{postId} {
